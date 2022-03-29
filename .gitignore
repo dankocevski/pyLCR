@@ -1,0 +1,3 @@
+build/
+pyLCR.egg-info/
+pyLCR/__pycache__/
