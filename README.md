@@ -29,4 +29,4 @@ Downloading data for a specific source
 
 `data = pyLCR.getLightCurveData('4FGL J0001.2-0747', cadence='daily', flux_type='photon', index_type='fixed')`
 
-Note that the cadence refers to the binning timescale, with the options including 'daily', 'weekly', or 'monthly'. The flux_type refers to the units in which the flux is returned, with the options including 'photon' flux in units of photons cm<sup>-2</sup> s<sup>-1</sup> or 'energy' flux in units of MeV cm<sup>-2m</sup> <sup>-1</sup>. The index_type refers to whether the spectral index of the source was 'fixed' or 'free' during the spectral fit.
+Note that the cadence refers to the binning timescale, with the options including 'daily', 'weekly', or 'monthly'. The flux_type refers to the units in which the flux is returned, with the options including 'photon' flux in units of photons cm<sup>-2</sup> s<sup>-1</sup> or 'energy' flux in units of MeV cm<sup>-2</sup> <sup>-1</sup>. The index_type refers to whether the spectral index of the source was 'fixed' or 'free' during the spectral fit.
