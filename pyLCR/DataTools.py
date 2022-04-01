@@ -5,7 +5,7 @@ import numpy
 import io
 import sys
 
-from Sources import sources
+from .Sources import sources
 
 def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='fixed', ts_min=4):
     """Download data from the light curve repository
@@ -22,7 +22,7 @@ def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='f
 
     """
 
-    if source not in sources.source_names:
+    if source not in sources:
         print("\nError: %s is not a source that is tracked by the LCR." % source)
         return
 
@@ -99,18 +99,18 @@ def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='f
     # data['GAL'] = numpy.array(data['GAL'])
     # data['bin_id'] = numpy.array(data['bin_id'])
 
-    data['ts'] = data['ts'][:,0], data['ts'][:,1]
-    data['flux'] = data['flux'][:,0], data['flux'][:,1]
-    data['flux_upper_limits'] = data['flux_upper_limits'][:,0], data['flux_upper_limits'][:,1]
-    data['flux_error'] = data['flux_error'][:,0], data['flux_error'][:,1]
-    data['photon_index'] = data['photon_index'][:,0], data['photon_index'][:,1]
-    data['photon_index_interval'] = data['photon_index_interval'][:,0], data['photon_index_interval'][:,1]
-    data['fit_tolerance'] = data['fit_tolerance'][:,0], data['fit_tolerance'][:,1]
-    data['fit_convergence'] = data['fit_convergence'][:,0], data['fit_convergence'][:,1]
-    data['dlogl'] = data['dlogl'][:,0], data['dlogl'][:,1]
-    data['EG'] = data['EG'][:,0], data['EG'][:,1]
-    data['GAL'] = data['GAL'][:,0], data['GAL'][:,1]
-    data['bin_id'] = data['bin_id'][:,0], data['bin_id'][:,1]
+    data['ts'] = numpy.array(data['ts'])[:,0], numpy.array(data['ts'])[:,1]
+    data['flux'] = numpy.array(data['flux'])[:,0], numpy.array(data['flux'])[:,1]
+    data['flux_upper_limits'] = numpy.array(data['flux_upper_limits'])[:,0], numpy.array(data['flux_upper_limits'])[:,1]
+    data['flux_error'] = numpy.array(data['flux_error'])[:,0], numpy.array(data['flux_error'])[:,1]
+    data['photon_index'] = numpy.array(data['photon_index'])[:,0], numpy.array(data['photon_index'])[:,1]
+    data['photon_index_interval'] = numpy.array(data['photon_index_interval'])[:,0], numpy.array(data['photon_index_interval'])[:,1]
+    data['fit_tolerance'] = numpy.array(data['fit_tolerance'])[:,0], numpy.array(data['fit_tolerance'])[:,1]
+    data['fit_convergence'] = numpy.array(data['fit_convergence'])[:,0], numpy.array(data['fit_convergence'])[:,1]
+    data['dlogl'] = numpy.array(data['ts'])[:,0], numpy.array(data['dlogl'])
+    data['EG'] = numpy.array(data['ts'])[:,0], numpy.array(data['EG'])
+    data['GAL'] = numpy.array(data['ts'])[:,0], numpy.array(data['GAL'])
+    data['bin_id'] = numpy.array(data['ts'])[:,0], numpy.array(data['bin_id'])
 
     return data
 
