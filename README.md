@@ -15,7 +15,7 @@ https://fermi.gsfc.nasa.gov/ssc/data/access/lat/LightCurveRepository/index.html
 
 Installing the package using pip
 
-`pip install <path to pyLCR>/pyLCR`
+`pip -e install <path to pyLCR>/pyLCR`
 
 ### How to Uninstall
 
