@@ -19,8 +19,11 @@
 # Version of pyLCR
 __version__ = '0.1.0'
 
-from .DataTools import getLightCurveData
-from .PlottingTools import plotLightCurveData
+from .DataTools import getLightCurve
+from .PlottingTools import plotLightCurve
+from .PlottingTools import computeDate
+from .PlottingTools import getCurrentMET
+from .PlottingTools import computeMJD
 from .Sources import sources
 
 del DataTools

@@ -70,127 +70,168 @@ def computeMJD(MET, returnFraction=True):
 
 ##########################################################################################
 
-def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, ylim=None, triggerMET=None, triggerMJD=None, ylog=False, xlog=False, ymin=None, \
-    ymax=None, xmin=None, xmax=None, removeTicks=1, savefig=True, showPlot=False, plotTS=False, plotIndex=False, plotFreeIndexFit=False, verbose=False, extension='.png'):
+def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=None, triggerMET=None, triggerMJD=None, ylog=False, xlog=False, ymin=None, \
+    ymax=None, xmin=None, xmax=None, removeTicks=1, savefig=False, showPlot=False, plotTS=False, plotIndex=False, extension='.png'):
     """Plot data from the light curve repository
 
     Arguments:
-        lightCurveData (dict):              '
-        logCenter (BOOL):          
-        MET (int):        
-        useMJD (BOOL):       
-        ylim (list):         
-        triggerMET (int):         
-        ylog (BOOL):         
-        xlog (BOOL):         
+        lightCurveData (Obj):       An instance of the LightCurve class            
+        logCenter (BOOL):           Whether to use logarithmic bin centers. Default = False         
+        MET (int):                  Reference MET. Default = None
+        useMJD (BOOL):              Specifies whether the y-axis should be in units of MJD. Default = False
+        ylim (list):                Specifies a limit on the y-axis
+        triggerMET (int):           Specifies a trigger MET to highlight on the plot. Default = None
+        triggerMJD (int):           Specifies a trigger MJD to highlight on the plot. Default = None
+        ylog (BOOL):                Enables y-axis logarithmic scaling. Default = False
+        xlog (BOOL):                Enables c-axis logarithmic scaling. Default = False
+        ymin (float):               Specifies a lower limit on the y-axis. Default = None
+        ymax (float):               Specifies a upper limit on the y-axis. Default = None
+        xmin (float):               Specifies a lower limit on the x-axis. Default = None
+        xmax (float):               Specifies an upper limit on the x-axis. Default = None
+        removeTicks (int):          Specifies the number of ticks to remove from the y-axis on multi-axis plots, Default = 1
+        savefig (BOOL):             Specifies whether the plot should be saved to disk. Default = False
+        showPlot (BOOL):            Specifies whether the plot should be displayed to screen. Default = True
+        plotTS (BOOL):              Specifies whether the TS should be displayed on a seperate plot pane. Default = False
+        plotIndex (BOOL):           Specifies whether the photon inde should be displayed on a seperate plot pane. Default = False
+        extension (str):            Specifies whether the format of the saved plot image. Default = 'png''
 
     Returns:
         None
 
     """
     
+    # Extract the source name
+    source = lightCurve.source
+
     # Extract likelihood ratio test statistic
-    ts = lightCurveData['ts']
+    ts = lightCurve.ts
 
     # Extact the tmin and tmax of the analysis 
-    tmin = lightCurveData['tmin']
-    tmax = lightCurveData['tmax']
-
-    # Extract the spectral flux and index values
-    if plotFreeIndexFit == False:
-
-        # Results from a likelihood fit where spectral index of the source of interest was left free to vary
-        photon_index = lightCurveData['photon_index']
-        photon_index_error = lightCurveData['photon_index_error']
-        photon_flux = lightCurveData['photon_flux']
-        photon_flux_error = lightCurveData['photon_flux_error']
-        energy_flux = lightCurveData['energy_flux'] 
-        energy_flux_error = lightCurveData['energy_flux_error']
-
-    else:
-
-        # Results from a likelihood fit where spectral index of the source of interest was fixed
-        photon_index = lightCurveData['photon_index2']
-        photon_index_error = lightCurveData['photon_index_error2']
-        photon_flux = lightCurveData['photon_flux2']
-        photon_flux_error = lightCurveData['photon_flux_error2']
-        energy_flux = lightCurveData['energy_flux2'] 
-        energy_flux_error = lightCurveData['energy_flux_error2']        
-
-    # Extract the photon and energy upper limits
-    photon_flux_upper_limit = lightCurveData['photon_flux_upper_limit']
-    energy_flux_upper_limit = lightCurveData['energy_flux_upper_limit']
-
-    # Get the duration
-    # dt = numpy.array([tmax[1] - tmin[0]] * len(tmax))
-    dt = tmax - tmin
+    met = lightCurve.met
 
     # Determine which timebins have detections 
-    detections = numpy.where(ts >= ts_min)
-    nondetections = numpy.where(ts < ts_min)
+    met_detections = lightCurve.met_detections
+    met_upperlimits = lightCurve.met_upperlimits
 
-    # Get the time bin centers
-    if logCenter == True:
-        timebin_center = (tmin*tmax)**0.5 
-    else:
-        # timebin_center = tmin + (tmin+tmax)*0.5
-        timebin_center = tmin+(tmax-tmin)
+    # Get the spectral information
+    flux_type = lightCurve.flux_type
+    index_type = lightCurve.index_type 
+    photon_index = lightCurve.photon_index
+    photon_index_error = photon_index - lightCurve.photon_index_interval
 
-    # Convert everything to a relative time if an MET is specified
-    if MET is not None:
-        timebin_center = timebin_center - MET
+    # Extract the flux information
+    flux = lightCurve.flux
+    flux_upper_limit = lightCurve.flux_upper_limits
+
+    # Extracting the flux error and placing it in the proper format
+    flux_error = flux - lightCurve.flux_error[:,0]
+
+    # Determine the bin size
+    cadence = lightCurve.cadence
+
+    # Quantify the cadence
+    if 'daily' in cadence:
+        duration = 259200
+    elif 'weekly' in candence:
+        duration = 604800
+    elif 'monthly' in cadence:
+        duration = 2592000
+
+    # Get the bin widths
+    tmin = met - duration
+    tmax = met + duration
+
+    # Create the plot label
+    label = flux_type + ' Flux'
+
+    # Get the duration
+    dt = tmax-tmin
+
 
     # Convert the timebins to MJD
-    elif useMJD == True:
+    if useMJD == True:
 
-        # Convert dt into days
+        # Convert dt and x errors into days
         dt = dt / 86400.0
+        x_errors = (duration / 2.0) / 86400.0
 
+        # Create lists to store the converted time bins
         MJDs = []
+        MJDs_detections = []
+        MJDs_upperlimits = []
 
-        for timebin in timebin_center:
-            MJD = computeMJD(timebin)
-            MJDs.append(MJD)
+        # Convert all of the time bins
+        for timebin in met:
+            MJDs.append(computeMJD(timebin))
 
-        timebin_center = numpy.array(MJDs)
+        # Convert time bins for the detections
+        for timebin in met_detections:
+            MJDs_detections.append(computeMJD(timebin))
+
+        # Convert time bins for the nondetections
+        for timebin in met_upperlimits:
+            MJDs_upperlimits.append(computeMJD(timebin))
+
+        # Vectorize the arrays
+        timebins = numpy.array(MJDs)
+        timebins_detections = numpy.array(MJDs_detections)
+        timebins_upperlimits = numpy.array(MJDs_upperlimits)
+
+        # Convert the triggerMET if no triggerMJD was specified
+        if triggerMET == True and triggerMJD == False:
+            triggerMJD = computeMJD(triggerMET)
+
+    else:
+
+        # Calculate the x errors
+        x_errors = duration/2.0
+
+        # Get the time bin centers
+        timebins = met
+        timebins_detections = met_detections
+        timebins_upperlimits = met_upperlimits
+
+        # Convert everything to a relative time if an MET is specified
+        if MET is not None:
+            timebins = timebins - MET
+            timebins_detections = timebins_detections - MET
+            timebins_upperlimits = timebins_upperlimits - MET
+
 
     # Create two subplots sharing the x axes
     if plotTS == True and plotIndex == True:
-        f, (ax, ax2, ax3) = plot.subplots(3, sharex=True, sharey=False, figsize=[12,12])
+        f, (ax, ax2, ax3) = plot.subplots(3, sharex=True, sharey=False, figsize=[18,12])
     elif plotTS == False and plotIndex == True:
-        f, (ax, ax3) = plot.subplots(2, sharex=True, sharey=False, figsize=[12,9])
+        f, (ax, ax3) = plot.subplots(2, sharex=True, sharey=False, figsize=[18,9])
     elif plotTS == True and plotIndex == False:
-        f, (ax, ax2) = plot.subplots(2, sharex=True, sharey=False, figsize=[12,9])
+        f, (ax, ax2) = plot.subplots(2, sharex=True, sharey=False, figsize=[18,9])
     elif plotTS == False and plotIndex == False:
-        f, (ax) = plot.subplots(1, sharex=True, sharey=False, figsize=[12,6])
+        f, (ax) = plot.subplots(1, sharex=True, sharey=False, figsize=[18,6])
 
     # Adjust the two plots so that there is no space between them
-    if plotTS == True or plotIndex == True:
-        f.subplots_adjust(hspace=0)
-
-    # Calculate the x errors
-    x_errors = (dt[detections]/2.)
+    # if plotTS == True or plotIndex == True:
+    #     f.subplots_adjust(hspace=0)
 
     # Plot the flux values
-    ax.scatter(timebin_center[detections], photon_flux[detections], marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
+    ax.scatter(timebins_detections, flux, marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
 
     # Plot the upper limits
-    ax.scatter(timebin_center[nondetections], photon_flux_upper_limit[nondetections], marker='v', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5, alpha=0.6)
+    ax.scatter(timebins_upperlimits, flux_upper_limit, marker='v', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5, alpha=0.6)
 
     # Don't let the error bars affect the plot scale
     ax.set_autoscale_on(False)
 
     # Plot the error bars
-    ax.errorbar(timebin_center[detections], photon_flux[detections], xerr=[dt[detections]/2., dt[detections]/2.], yerr=photon_flux_error[detections], fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', label='Photon Flux', capsize=0, alpha=0.6)
+    ax.errorbar(timebins_detections, flux, xerr=x_errors, yerr=numpy.transpose(flux_error), fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', label=label, capsize=0, alpha=0.6)
 
     # Set the y-axis range
     if ylog == True:
-        ymax=numpy.median(photon_flux[detections])*100
-        ymin=numpy.median(photon_flux[detections])/100
+        ymax=numpy.median(flux)*100
+        ymin=numpy.median(flux)/100
         ax.set_ylim(ymin, ymax)
 
     elif ymin is None and ymax is None:
-        ymax=numpy.median(photon_flux[detections])*10
+        ymax=numpy.median(flux)*10
         ymin=0
         ax.set_ylim(ymin, ymax)
 
@@ -212,17 +253,16 @@ def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, 
     # Set the x-axis range
     ax.set_xlim(xmin, xmax)
 
-
     # Set the format of the y-axis to scientific notation
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1e'))
 
     # Set the x-axis minor tick frequency
-    minorLocator = AutoMinorLocator()
-    ax.xaxis.set_minor_locator(minorLocator)
+    # minorLocator = AutoMinorLocator()
+    # ax.xaxis.set_minor_locator(minorLocator)
 
-    # Set the y-axis minor tick frequency
-    minorLocator = AutoMinorLocator()        
-    ax.yaxis.set_minor_locator(minorLocator)
+    # # Set the y-axis minor tick frequency
+    # minorLocator = AutoMinorLocator()        
+    # ax.yaxis.set_minor_locator(minorLocator)
 
     # Set a minimum y value
     if ylog == False:
@@ -232,7 +272,7 @@ def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, 
         if ylim is not None:
             ax.set_ylim(ylim)
         else:
-            ax.set_ylim(bottom=numpy.median(photon_flux[detections]/100))
+            ax.set_ylim(bottom=numpy.median(flux/100))
 
     # Annotate the MET of interest
     if triggerMET is not None:
@@ -258,19 +298,12 @@ def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, 
     ax.set_ylabel(r'Photons cm$^{-2}$ s$^{-1}$')
 
     # Set the plot title
-    ax.set_title(source_name, fontsize=12)
+    ax.set_title(source, fontsize=12)
 
-    if plotTS == True or plotIndex == True:
-
-        # Hide the last tick label
-        yticks = ax.get_yticks()
-        yticks = yticks[1:-1*removeTicks]
-        ax.set_yticks(yticks)
-
-
+    # Create the TS plot pane
     if plotTS == True:
-        ax2.scatter(timebin_center, ts, marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
-        ax2.errorbar(timebin_center, ts, xerr=[dt/2., dt/2.], yerr=numpy.zeros(len(ts)), fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', capsize=0, alpha=0.6)
+        ax2.scatter(timebins, ts, marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
+        ax2.errorbar(timebins, ts, xerr=x_errors, yerr=numpy.zeros(len(ts)), fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', capsize=0, alpha=0.6)
 
         ax2.set_ylabel('TS')
 
@@ -280,19 +313,14 @@ def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, 
         else:
             ax2.set_xlabel('Time (sec)')
 
-        # Hide the last tick label
-        yticks = ax2.get_yticks()
-        yticks = yticks[1:-1*removeTicks]
-        ax2.set_yticks(yticks)
-
         ax2.set_yscale('log')
-        ax2.set_ylim(0.1,max(ts)*2)
 
-
+    # Create the photon index plot pane
     if plotIndex == True:
-        ax3.scatter(timebin_center, photon_index, marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
-        ax3.errorbar(timebin_center[detections], photon_index[detections], xerr=[dt[detections]/2., dt[detections]/2.], yerr=photon_index_error[detections], fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', capsize=0, alpha=0.6)
+        ax3.scatter(timebins_detections, photon_index, marker='o', s=25, edgecolors='black', color='#3e4d8b', linewidths=0.5)
+        ax3.errorbar(timebins_detections, photon_index, xerr=x_errors, yerr=photon_index_error, fmt='none', markersize=5, color='#3e4d8b', ecolor='#3e4d8b', markeredgecolor='black', capsize=0, alpha=0.6)
 
+        # Set the y-label
         ax3.set_ylabel(r'$\Gamma$')
 
         # Set up the x-axis label
@@ -301,34 +329,23 @@ def plotLightCurveData(lightCurveData, logCenter=False, MET=None, useMJD=False, 
         else:
             ax3.set_xlabel('Time (sec)')
 
-        # Hide the last tick label
-        yticks = ax3.get_yticks()
-        yticks = yticks[1:-1*removeTicks]
-        ax3.set_yticks(yticks)
-
-        finite = numpy.isfinite(photon_index)
-        photon_index_median = numpy.median(photon_index[finite])
-        photon_index_std = numpy.std(photon_index[finite])
-
-        ymin_ax3 = photon_index_median - 5*photon_index_std
-        ymax_ax3 = photon_index_median + 5*photon_index_std
-
-        ax3.set_ylim(ymin_ax3, ymax_ax3)
+        # Set the format of the y-axis to scientific notation
+        ax3.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
 
 
     if savefig == True:
 
         # Replace any spaces in the source name with underscores
-        source_name_underscore = source_name.replace(' ', '_')
+        source_underscore = source.replace(' ', '_')
 
         # Define the filename
-        filename = 'photon_flux_' + source_name_underscore + '_' + cadence + extension
+        filename = 'photon_flux_' + source_underscore + '_' + cadence + extension
 
         # Save the plot
         print('\nSaving photon flux plot to:\n%s' % filename)
         plot.savefig(filename, bbox_inches='tight', dpi=96)
 
-
+    # Show the plot
     if showPlot == True:
         plot.show()
 

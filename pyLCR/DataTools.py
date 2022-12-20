@@ -7,7 +7,55 @@ import sys
 
 from .Sources import sources
 
-def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='fixed', ts_min=4):
+
+class LightCurve():
+    """
+    An dictionary object used to store the light curve data as numpy array that are accessible through key value pairs
+
+    """ 
+
+    def __init__(self): 
+        self.met = numpy.array([])
+        self.met_detections = numpy.array([])
+        self.met_upperlimits = numpy.array([]) 
+        self.ts = numpy.array([])
+        self.flux = numpy.array([])
+        self.flux_upper_limits = numpy.array([])
+        self.flux_error = numpy.array([])  
+        self.photon_index = numpy.array([])
+        self.photon_index_interval = numpy.array([])
+        self.fit_tolerance = numpy.array([])
+        self.fit_convergence = numpy.array([]) 
+        self.dlogl = numpy.array([])
+        self.EG = numpy.array([])
+        self.GAL = numpy.array([]) 
+        self.bin_id = numpy.array([]) 
+
+        self.source = None
+        self.flux_type =  None
+        self.index_type = None
+        self.cadence = None
+        self.ts_min = None
+
+    def get_info(self):
+        """
+        Display light curve information 
+
+        """ 
+
+        print('Source name: %s' % self.source)
+        print('Cadence: %s' % self.cadence)
+        print('Flux type: %s' % self.flux_type)
+        print('Photon index fit type: %s' % self.index_type)
+        print('Minimum detection TS: %s' % self.ts_min)
+        print('')
+        print('Number of bins: %s' % len(self.met))
+        print('Number of detections: %s (%.2f%%)' % (len(self.flux), (100*len(self.flux)/len(self.met))))
+        print('Number of upper limits: %s (%.2f%%)' % (len(self.flux_upper_limits), (100*len(self.flux_upper_limits)/len(self.met))))
+        print('Number of non-convergant fits: %s (%.2f%%)' % (len(numpy.where(self.fit_convergence != 0)[0]), (100*len(numpy.where(self.fit_convergence != 0)[0])/len(self.met))))
+
+
+def getLightCurve(source, cadence='daily', flux_type='photon', index_type='fixed', ts_min=4, verbose=False):
     """Download data from the light curve repository
 
     Arguments:
@@ -66,6 +114,10 @@ def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='f
         # Open the url
         with urllib.request.urlopen(url) as response:
 
+            if verbose == True:
+                print("")
+                print(url)
+
             # Parse the downloaded data
             data = json.loads(response.read().decode())
 
@@ -86,31 +138,71 @@ def getLightCurveData(source, cadence='daily', flux_type='photon', index_type='f
         elif hasattr(e, 'code'):
             print("Return Code", e.code)
 
-    # data['ts'] = numpy.array(data['ts'])
-    # data['flux'] = numpy.array(data['flux'])
-    # data['flux_upper_limits'] = numpy.array(data['flux_upper_limits'])
-    # data['flux_error'] = numpy.array(data['flux_error'])
-    # data['photon_index'] = numpy.array(data['photon_index'])
-    # data['photon_index_interval'] = numpy.array(data['photon_index_interval'])
-    # data['fit_tolerance'] = numpy.array(data['fit_tolerance'])
-    # data['fit_convergence'] = numpy.array(data['fit_convergence'])
-    # data['dlogl'] = numpy.array(data['dlogl'])
-    # data['EG'] = numpy.array(data['EG'])
-    # data['GAL'] = numpy.array(data['GAL'])
-    # data['bin_id'] = numpy.array(data['bin_id'])
 
-    data['ts'] = numpy.array(data['ts'])[:,0], numpy.array(data['ts'])[:,1]
-    data['flux'] = numpy.array(data['flux'])[:,0], numpy.array(data['flux'])[:,1]
-    data['flux_upper_limits'] = numpy.array(data['flux_upper_limits'])[:,0], numpy.array(data['flux_upper_limits'])[:,1]
-    data['flux_error'] = numpy.array(data['flux_error'])[:,0], numpy.array(data['flux_error'])[:,1]
-    data['photon_index'] = numpy.array(data['photon_index'])[:,0], numpy.array(data['photon_index'])[:,1]
-    data['photon_index_interval'] = numpy.array(data['photon_index_interval'])[:,0], numpy.array(data['photon_index_interval'])[:,1]
-    data['fit_tolerance'] = numpy.array(data['fit_tolerance'])[:,0], numpy.array(data['fit_tolerance'])[:,1]
-    data['fit_convergence'] = numpy.array(data['fit_convergence'])[:,0], numpy.array(data['fit_convergence'])[:,1]
-    data['dlogl'] = numpy.array(data['ts'])[:,0], numpy.array(data['dlogl'])
-    data['EG'] = numpy.array(data['ts'])[:,0], numpy.array(data['EG'])
-    data['GAL'] = numpy.array(data['ts'])[:,0], numpy.array(data['GAL'])
-    data['bin_id'] = numpy.array(data['ts'])[:,0], numpy.array(data['bin_id'])
+    # Store all the data in a light curve object
+    lightCurve = LightCurve()
 
-    return data
+    # Extract the MET values
+    met_all = numpy.array(data['ts'])[:,0]
+    met_detections = numpy.array(data['flux'])[:,0]
+    met_upperlimits = numpy.array(data['flux_upper_limits'])[:,0]
+
+    # Create detection and nondetection indices (not currently used)
+    detections = numpy.where(numpy.in1d(met_all, met_detections))[0]
+    upperlimits = numpy.where(numpy.in1d(met_all, met_upperlimits))[0]
+
+    # Add the data to the lightCurve object
+    # lightCurve['ts'] = numpy.array(data['ts'])[:,0], numpy.array(data['ts'])[:,1]
+    # lightCurve['flux'] = numpy.array(data['flux'])[:,0], numpy.array(data['flux'])[:,1]
+    # lightCurve['flux_upper_limits'] = numpy.array(data['flux_upper_limits'])[:,0], numpy.array(data['flux_upper_limits'])[:,1]
+    # lightCurve['flux_error'] = numpy.array(data['flux_error'])[:,0], numpy.array(data['flux_error'])[:,1]
+    # lightCurve['photon_index'] = numpy.array(data['photon_index'])[:,0], numpy.array(data['photon_index'])[:,1]
+    # lightCurve['photon_index_interval'] = numpy.array(data['photon_index_interval'])[:,0], numpy.array(data['photon_index_interval'])[:,1]
+    # lightCurve['fit_tolerance'] = numpy.array(data['fit_tolerance'])[:,0], numpy.array(data['fit_tolerance'])[:,1]
+    # lightCurve['fit_convergence'] = numpy.array(data['fit_convergence'])[:,0], numpy.array(data['fit_convergence'])[:,1]
+    # lightCurve['dlogl'] = numpy.array(data['ts'])[:,0], numpy.array(data['dlogl'])
+    # lightCurve['EG'] = numpy.array(data['ts'])[:,0], numpy.array(data['EG'])
+    # lightCurve['GAL'] = numpy.array(data['ts'])[:,0], numpy.array(data['GAL'])
+    # lightCurve['bin_id'] = numpy.array(data['ts'])[:,0], numpy.array(data['bin_id'])
+
+    # lightCurve['met'] = numpy.array(data['ts'])[:,0]
+    # lightCurve['met_detections'] = numpy.array(data['flux'])[:,0]
+    # lightCurve['met_upperlimits'] = numpy.array(data['flux_upper_limits'])[:,0]
+    # lightCurve['ts'] = numpy.array(data['ts'])[:,1]
+    # lightCurve['flux'] = numpy.array(data['flux'])[:,1]
+    # lightCurve['flux_upper_limits'] = numpy.array(data['flux_upper_limits'])[:,1]
+    # lightCurve['flux_error'] = numpy.array(data['flux_error'])[:,1]
+    # lightCurve['photon_index'] = numpy.array(data['photon_index'])[:,1]
+    # lightCurve['photon_index_interval'] = numpy.array(data['photon_index_interval'])[:,1]
+    # lightCurve['fit_tolerance'] = numpy.array(data['fit_tolerance'])[:,1]
+    # lightCurve['fit_convergence'] = numpy.array(data['fit_convergence'])[:,1]
+    # lightCurve['dlogl'] = numpy.array(data['dlogl'])
+    # lightCurve['EG'] = numpy.array(data['EG'])
+    # lightCurve['GAL'] = numpy.array(data['GAL'])
+    # lightCurve['bin_id'] = numpy.array(data['bin_id'])
+
+    lightCurve.met = numpy.array(data['ts'])[:,0]
+    lightCurve.met_detections = numpy.array(data['flux'])[:,0]
+    lightCurve.met_upperlimits = numpy.array(data['flux_upper_limits'])[:,0]
+    lightCurve.ts = numpy.array(data['ts'])[:,1]
+    lightCurve.flux = numpy.array(data['flux'])[:,1]
+    lightCurve.flux_upper_limits = numpy.array(data['flux_upper_limits'])[:,1]
+    lightCurve.flux_error = numpy.array(data['flux_error'])[:,1:]
+    lightCurve.photon_index = numpy.array(data['photon_index'])[:,1]
+    lightCurve.photon_index_interval = numpy.array(data['photon_index_interval'])[:,1]
+    lightCurve.fit_tolerance = numpy.array(data['fit_tolerance'])[:,1]
+    lightCurve.fit_convergence = numpy.array(data['fit_convergence'])[:,1]
+    lightCurve.dlogl = numpy.array(data['dlogl'])
+    lightCurve.EG = numpy.array(data['EG'])
+    lightCurve.GAL = numpy.array(data['GAL'])
+    lightCurve.bin_id = numpy.array(data['bin_id'])
+
+    lightCurve.source = source
+    lightCurve.cadence = cadence
+    lightCurve.flux_type = flux_type
+    lightCurve.index_type = index_type
+    lightCurve.ts_min = ts_min
+
+
+    return lightCurve
 
