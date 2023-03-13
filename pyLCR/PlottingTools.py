@@ -131,7 +131,7 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
 
     # Quantify the cadence
     if 'daily' in cadence:
-        duration = 86_400
+        duration = 259_200
     elif 'weekly' in cadence:
         duration = 604_800
     elif 'monthly' in cadence:
