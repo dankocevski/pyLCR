@@ -349,9 +349,9 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
     if showPlot == True:
         plot.show()
 
-    plot.close()
+    #plot.close()
 
-    return
+    return (f, ax)
 
 ##########################################################################################
 
