@@ -84,7 +84,7 @@ def getLightCurve(source, cadence='daily', flux_type='photon', index_type='fixed
         print("\nThe flux_type keyword specifies the requested flux type. Options include 'photon' and 'energy'")
         return
 
-    if 'fixed' not in index_type and 'free' not in flux_type:
+    if 'fixed' not in index_type and 'free' not in index_type:
         print("\nError: Unrecognized spectral index type.")
         print("\nThe index_type keyword specifies the spectral index freedom during fit. Options include 'free' and 'fixed'")
         return
