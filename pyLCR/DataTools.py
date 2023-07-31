@@ -74,17 +74,17 @@ def getLightCurve(source, cadence='daily', flux_type='photon', index_type='fixed
         print("\nError: %s is not a source that is tracked by the LCR." % source)
         return
 
-    if 'daily' not in cadence and 'weekly' not in cadence and 'monthly' not in cadence:
+    if cadence not in ['daily', 'weekly', 'monthly']:
         print("\nError: Unrecognized cadence.")
         print("\nThe cadence keyword specifies the requested light curve cadence. Options include: 'daily', 'weekly', and 'monthly'")
         return 
 
-    if 'photon' not in flux_type and 'energy' not in flux_type:
+    if flux_type not in ['photon', 'energy']:
         print("\nError: Unrecognized flux type.")
         print("\nThe flux_type keyword specifies the requested flux type. Options include 'photon' and 'energy'")
         return
 
-    if 'fixed' not in index_type and 'free' not in index_type:
+    if index_type not in ['fixed', 'free']:
         print("\nError: Unrecognized spectral index type.")
         print("\nThe index_type keyword specifies the spectral index freedom during fit. Options include 'free' and 'fixed'")
         return
