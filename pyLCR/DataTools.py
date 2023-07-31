@@ -145,7 +145,10 @@ def getLightCurve(source, cadence='daily', flux_type='photon', index_type='fixed
     # Extract the MET values
     met_all = numpy.array(data['ts'])[:,0]
     met_detections = numpy.array(data['flux'])[:,0]
-    met_upperlimits = numpy.array(data['flux_upper_limits'])[:,0]
+    try:
+        met_upperlimits = numpy.array(data['flux_upper_limits'])[:,0]
+    except IndexError:  # If there are no upper limits
+        met_upperlimits = numpy.array([])
 
     # Create detection and nondetection indices (not currently used)
     detections = numpy.where(numpy.in1d(met_all, met_detections))[0]
@@ -183,7 +186,7 @@ def getLightCurve(source, cadence='daily', flux_type='photon', index_type='fixed
 
     lightCurve.met = numpy.array(data['ts'])[:,0]
     lightCurve.met_detections = numpy.array(data['flux'])[:,0]
-    lightCurve.met_upperlimits = numpy.array(data['flux_upper_limits'])[:,0]
+    lightCurve.met_upperlimits = met_upperlimits
     lightCurve.ts = numpy.array(data['ts'])[:,1]
     lightCurve.flux = numpy.array(data['flux'])[:,1]
     lightCurve.flux_upper_limits = numpy.array(data['flux_upper_limits'])[:,1]
