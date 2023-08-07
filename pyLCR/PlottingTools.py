@@ -131,11 +131,11 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
 
     # Quantify the cadence
     if 'daily' in cadence:
-        duration = 259200
-    elif 'weekly' in candence:
-        duration = 604800
+        duration = 259_200
+    elif 'weekly' in cadence:
+        duration = 604_800
     elif 'monthly' in cadence:
-        duration = 2592000
+        duration = 2_592_000
 
     # Get the bin widths
     tmin = met - duration
@@ -349,9 +349,9 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
     if showPlot == True:
         plot.show()
 
-    plot.close()
+    #plot.close()
 
-    return
+    return (f, ax)
 
 ##########################################################################################
 
