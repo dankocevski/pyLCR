@@ -295,7 +295,10 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
         ax.set_xlabel('Time (sec)')
 
     # Setup the y-axis label
-    ax.set_ylabel(r'Photons cm$^{-2}$ s$^{-1}$')
+    if lightCurve.flux_type == 'photon':  # Photon flux
+        ax.set_ylabel(r'Photons cm$^{-2}$ s$^{-1}$')
+    elif lightCurve.flux_type == 'energy':  # Energy flux
+        ax.set_ylabel(r'erg cm$^{-2}$ s$^{-1}$')
 
     # Set the plot title
     ax.set_title(source, fontsize=12)
