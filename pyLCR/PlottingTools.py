@@ -71,7 +71,7 @@ def computeMJD(MET, returnFraction=True):
 ##########################################################################################
 
 def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=None, triggerMET=None, triggerMJD=None, ylog=False, xlog=False, ymin=None, \
-    ymax=None, xmin=None, xmax=None, removeTicks=1, savefig=False, showPlot=False, plotTS=False, plotIndex=False, extension='.png'):
+    ymax=None, xmin=None, xmax=None, removeTicks=1, savefig=False, showPlot=True, plotTS=False, plotIndex=False, extension='.png'):
     """Plot data from the light curve repository
 
     Arguments:
