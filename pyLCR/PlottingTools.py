@@ -131,11 +131,11 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
 
     # Quantify the cadence
     if 'daily' in cadence:
-        duration = 259200
-    elif 'weekly' in candence:
-        duration = 604800
+        duration = 259_200
+    elif 'weekly' in cadence:
+        duration = 604_800
     elif 'monthly' in cadence:
-        duration = 2592000
+        duration = 2_592_000
 
     # Get the bin widths
     tmin = met - duration
@@ -295,7 +295,10 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
         ax.set_xlabel('Time (sec)')
 
     # Setup the y-axis label
-    ax.set_ylabel(r'Photons cm$^{-2}$ s$^{-1}$')
+    if lightCurve.flux_type == 'photon':  # Photon flux
+        ax.set_ylabel(r'Photons cm$^{-2}$ s$^{-1}$')
+    elif lightCurve.flux_type == 'energy':  # Energy flux
+        ax.set_ylabel(r'erg cm$^{-2}$ s$^{-1}$')
 
     # Set the plot title
     ax.set_title(source, fontsize=12)
@@ -349,9 +352,9 @@ def plotLightCurve(lightCurve, logCenter=False, MET=None, useMJD=False, ylim=Non
     if showPlot == True:
         plot.show()
 
-    plot.close()
+    #plot.close()
 
-    return
+    return (f, ax)
 
 ##########################################################################################
 
